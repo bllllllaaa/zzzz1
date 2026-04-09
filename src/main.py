@@ -35,7 +35,7 @@ def crawl_qoo10_bestsellers(page, url):
     Crawls Qoo10 Japan bestsellers and extracts product data.
     """
     logger.info(f"Navigating to {url}")
-    page.goto(url, wait_until="networkidle")
+    page.goto(url, wait_until="domcontentloaded")
 
     # TODO: Implement the actual data extraction logic here.
     # Currently returning dummy data for the skeleton.
