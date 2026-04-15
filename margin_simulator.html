@@ -102,22 +102,38 @@
         <!-- 상품 기본 정보 입력 -->
         <div class="section">
             <h3>상품 원가 정보</h3>
+
+            <div style="margin-bottom: 15px; padding: 10px; background-color: #f9f9f9; border-radius: 5px; border: 1px solid #eee;">
+                <label style="font-weight: bold; margin-right: 15px;">제품원가 입력 방식:</label>
+                <input type="radio" id="costYen" name="costUnit" value="Yen" checked>
+                <label for="costYen" style="margin-right: 10px;">엔화 (¥)</label>
+
+                <input type="radio" id="costWon" name="costUnit" value="Won">
+                <label for="costWon" style="margin-right: 15px;">원화 (₩)</label>
+
+                <span id="vatOptionContainer" style="display: none; border-left: 2px solid #ccc; padding-left: 15px;">
+                    <input type="checkbox" id="excludeVat">
+                    <label for="excludeVat" style="font-size: 13px; color: #555;">원화 매입 시 매입 부가세(10%) 환급 제외 반영</label>
+                </span>
+            </div>
+
             <div class="input-group">
-                <div class="input-item">
-                    <label for="productCost">제품원가 (엔)</label>
-                    <input type="number" id="productCost" value="0">
+                <div class="input-item" id="costInputContainer">
+                    <label id="productCostLabel" for="productCost">제품원가 (¥)</label>
+                    <input type="number" id="productCost" value="0" step="10">
+                    <span id="appliedYenCost" style="font-size: 12px; color: #7f8c8d; margin-top: 5px;"></span>
                 </div>
                 <div class="input-item">
-                    <label for="packageCost">포장비 (엔)</label>
-                    <input type="number" id="packageCost" value="30">
+                    <label for="packageCost">포장비 (¥)</label>
+                    <input type="number" id="packageCost" value="30" step="10">
                 </div>
                 <div class="input-item">
-                    <label for="shippingCost">배송비 (엔)</label>
-                    <input type="number" id="shippingCost" value="0">
+                    <label for="shippingCost">배송비 (¥)</label>
+                    <input type="number" id="shippingCost" value="0" step="10">
                 </div>
                 <div class="input-item">
-                    <label for="sellingPrice">일반 판매가 (엔)</label>
-                    <input type="number" id="sellingPrice" value="1000">
+                    <label for="sellingPrice">일반 판매가 (¥)</label>
+                    <input type="number" id="sellingPrice" value="1000" step="10">
                 </div>
             </div>
         </div>
@@ -133,11 +149,12 @@
                         <th>쿠폰할인 (¥)</th>
                         <th>결제액 (¥)</th>
                         <th>수수료(13%) (¥)</th>
-                        <th>할인지원수수료/포인트 (¥)</th>
+                        <th>할인지원/포인트 (¥)</th>
                         <th>큐텐 지원금 (¥)</th>
+                        <th>적용 원가 (¥)</th>
                         <th>마진 (¥)</th>
                         <th>마진 (₩)</th>
-                        <th>부가세제외 마진 (₩)</th>
+                        <th>부가세포함 마진 (₩)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -169,20 +186,37 @@
         function calculate() {
             // 입력값 가져오기
             const exRate = parseFloat(document.getElementById('exchangeRate').value) / 100; // 9.3 처럼 계산
-            const vatRatio = parseFloat(document.getElementById('vatRatio').value);
+            const vatRatio = parseFloat(document.getElementById('vatRatio').value); // 사용자 입력값 (현재는 곱하기용으로 사용하지 않고 고정값 1.1 곱셈으로 수정)
 
-            const cost = parseFloat(document.getElementById('productCost').value) || 0;
+            let rawCost = parseFloat(document.getElementById('productCost').value) || 0;
             const pack = parseFloat(document.getElementById('packageCost').value) || 0;
             const ship = parseFloat(document.getElementById('shippingCost').value) || 0;
             const price = parseFloat(document.getElementById('sellingPrice').value) || 0;
 
-            const totalCost = cost + pack + ship;
+            // --- 제품원가 계산 분기 (엔화/원화 선택) ---
+            const costUnit = document.querySelector('input[name="costUnit"]:checked').value;
+            const excludeVat = document.getElementById('excludeVat').checked;
+
+            let finalCostJpy = 0;
+            if (costUnit === 'Yen') {
+                finalCostJpy = rawCost;
+                document.getElementById('appliedYenCost').innerText = ``;
+            } else {
+                // 원화 입력 시 환급(10%) 고려할지 분기
+                if (excludeVat) {
+                    rawCost = rawCost / 1.1; // 공급가액 기준
+                }
+                finalCostJpy = exRate > 0 ? (rawCost / exRate) : 0;
+                document.getElementById('appliedYenCost').innerText = `💡 변환된 엔화 원가: 약 ${finalCostJpy.toFixed(0)} ¥`;
+            }
+
+            const totalCost = finalCostJpy + pack + ship;
 
             // --- 일반 계산 ---
             const normalFee = price * 0.13;
             const normalMarginYen = price - normalFee - totalCost;
             const normalMarginWon = normalMarginYen * exRate; // 환율 표기에 맞춤
-            const normalMarginVatWon = normalMarginWon / vatRatio;
+            const normalMarginVatWon = normalMarginWon * vatRatio;
 
             // --- 메가포 (10%) 계산 ---
             // =B15 - C15 - F15 - G15 - H15 - I15 - K15 + J15
@@ -198,7 +232,7 @@
             // 마진 = 판매가 - 수수료 - 메가포포인트 - 할인지원수수료 - 원가/포장/배송 + 지원금
             const megapoMarginYen = price - megapoFee - megapoPoint - megapoDiscountFee - totalCost + megapoSupport;
             const megapoMarginWon = megapoMarginYen * exRate;
-            const megapoMarginVatWon = megapoMarginWon / vatRatio;
+            const megapoMarginVatWon = megapoMarginWon * vatRatio;
 
             // --- 메가와리 (20%) 계산 ---
             const megawariCoupon = price * 0.20;
@@ -210,7 +244,7 @@
             // 판매가 - 쿠폰 - 수수료 - 할인지원수수료 - 원가/포장/배송 + 지원금
             const megawariMarginYen = price - megawariCoupon - megawariFee - megawariDiscountFee - totalCost + megawariSupport;
             const megawariMarginWon = megawariMarginYen * exRate;
-            const megawariMarginVatWon = megawariMarginWon / vatRatio;
+            const megawariMarginVatWon = megawariMarginWon * vatRatio;
 
             // 결과 테이블 그리기
             const tbody = document.querySelector('#resultsTable tbody');
@@ -223,6 +257,7 @@
                     <td>${normalFee.toFixed(0)}</td>
                     <td>0</td>
                     <td>0</td>
+                    <td>${finalCostJpy.toFixed(0)}</td>
                     <td class="highlight">${normalMarginYen.toFixed(0)}</td>
                     <td>₩ ${normalMarginWon.toFixed(0)}</td>
                     <td>₩ ${normalMarginVatWon.toFixed(0)}</td>
@@ -235,6 +270,7 @@
                     <td>${megapoFee.toFixed(0)}</td>
                     <td>${megapoPoint.toFixed(0)} / ${megapoDiscountFee.toFixed(0)}</td>
                     <td>${megapoSupport.toFixed(0)}</td>
+                    <td>${finalCostJpy.toFixed(0)}</td>
                     <td class="highlight">${megapoMarginYen.toFixed(0)}</td>
                     <td>₩ ${megapoMarginWon.toFixed(0)}</td>
                     <td>₩ ${megapoMarginVatWon.toFixed(0)}</td>
@@ -247,6 +283,7 @@
                     <td>${megawariFee.toFixed(0)}</td>
                     <td>${megawariDiscountFee.toFixed(0)}</td>
                     <td>${megawariSupport.toFixed(0)}</td>
+                    <td>${finalCostJpy.toFixed(0)}</td>
                     <td class="highlight">${megawariMarginYen.toFixed(0)}</td>
                     <td>₩ ${megawariMarginWon.toFixed(0)}</td>
                     <td>₩ ${megawariMarginVatWon.toFixed(0)}</td>
@@ -302,13 +339,39 @@
             `;
         }
 
+        // 원가 입력 방식 변경 처리 로직
+        function handleCostUnitChange() {
+            const costUnit = document.querySelector('input[name="costUnit"]:checked').value;
+            const costInput = document.getElementById('productCost');
+            const costLabel = document.getElementById('productCostLabel');
+            const vatContainer = document.getElementById('vatOptionContainer');
+
+            if(costUnit === 'Yen') {
+                costLabel.innerText = "제품원가 (¥)";
+                costInput.step = "10";
+                vatContainer.style.display = "none";
+                document.getElementById('appliedYenCost').innerText = "";
+            } else {
+                costLabel.innerText = "제품원가 (₩)";
+                costInput.step = "100";
+                vatContainer.style.display = "inline";
+            }
+            calculate();
+        }
+
         // 이벤트 리스너 등록
-        document.querySelectorAll('input').forEach(input => {
+        document.querySelectorAll('input[type="number"]').forEach(input => {
             input.addEventListener('input', calculate);
         });
 
-        // 초기 계산
-        calculate();
+        document.querySelectorAll('input[name="costUnit"]').forEach(input => {
+            input.addEventListener('change', handleCostUnitChange);
+        });
+
+        document.getElementById('excludeVat').addEventListener('change', calculate);
+
+        // 초기 셋업 및 계산
+        handleCostUnitChange();
     </script>
 </body>
 </html>
