@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qoo10 마진 시뮬레이터</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            margin: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .input-item {
+            display: flex;
+            flex-direction: column;
+            width: calc(25% - 15px);
+            min-width: 150px;
+        }
+        .input-item label {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #34495e;
+        }
+        .input-item input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .results-table th, .results-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        .results-table th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        .results-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .highlight {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .target-section {
+            background-color: #e8f8f5;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Qoo10 마진 시뮬레이터</h1>
+
+    <div class="container">
+        <!-- 환경 설정 -->
+        <div class="section">
+            <h3>환경 설정</h3>
+            <div class="input-group">
+                <div class="input-item">
+                    <label for="exchangeRate">환율 (100엔당 원)</label>
+                    <input type="number" id="exchangeRate" value="930" step="10">
+                </div>
+                <div class="input-item">
+                    <label for="vatRatio">부가세 (나눌 값)</label>
+                    <input type="number" id="vatRatio" value="1.1" step="0.1">
+                </div>
+            </div>
+        </div>
+
+        <!-- 상품 기본 정보 입력 -->
+        <div class="section">
+            <h3>상품 원가 정보</h3>
+
+            <div style="margin-bottom: 15px; padding: 10px; background-color: #f9f9f9; border-radius: 5px; border: 1px solid #eee;">
+                <label style="font-weight: bold; margin-right: 15px;">제품원가 입력 방식:</label>
+                <input type="radio" id="costYen" name="costUnit" value="Yen" checked>
+                <label for="costYen" style="margin-right: 10px;">엔화 (¥)</label>
+
+                <input type="radio" id="costWon" name="costUnit" value="Won">
+                <label for="costWon" style="margin-right: 15px;">원화 (₩)</label>
+
+                <span id="vatOptionContainer" style="display: none; border-left: 2px solid #ccc; padding-left: 15px;">
+                    <input type="checkbox" id="excludeVat">
+                    <label for="excludeVat" style="font-size: 13px; color: #555;">원화 매입 시 매입 부가세(10%) 환급 제외 반영</label>
+                </span>
+            </div>
+
+            <div class="input-group">
+                <div class="input-item" id="costInputContainer">
+                    <label id="productCostLabel" for="productCost">제품원가 (¥)</label>
+                    <input type="number" id="productCost" value="0" step="10">
+                    <span id="appliedYenCost" style="font-size: 12px; color: #7f8c8d; margin-top: 5px;"></span>
+                </div>
+                <div class="input-item">
+                    <label for="packageCost">포장비 (¥)</label>
+                    <input type="number" id="packageCost" value="30" step="10">
+                </div>
+                <div class="input-item">
+                    <label for="shippingCost">배송비 (¥)</label>
+                    <input type="number" id="shippingCost" value="0" step="10">
+                </div>
+                <div class="input-item">
+                    <label for="sellingPrice">일반 판매가 (¥)</label>
+                    <input type="number" id="sellingPrice" value="1000" step="10">
+                </div>
+            </div>
+        </div>
+
+        <!-- 시뮬레이션 결과 -->
+        <div class="section">
+            <h3>마진 비교 결과</h3>
+            <table class="results-table" id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>구분</th>
+                        <th>판매가 (¥)</th>
+                        <th>쿠폰할인 (¥)</th>
+                        <th>결제액 (¥)</th>
+                        <th>수수료(13%) (¥)</th>
+                        <th>할인지원/포인트 (¥)</th>
+                        <th>큐텐 지원금 (¥)</th>
+                        <th>적용 원가 (¥)</th>
+                        <th>마진 (¥)</th>
+                        <th>마진 (₩)</th>
+                        <th>부가세포함 마진 (₩)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- JS로 채워짐 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 역산 결과 -->
+        <div class="section target-section">
+            <h3>목표 판매가 역산 (일반 마진과 동일하게 맞추기 위한 판매가)</h3>
+            <table class="results-table" id="targetTable">
+                <thead>
+                    <tr>
+                        <th>구분</th>
+                        <th>필요 판매가 (¥)</th>
+                        <th>예상 마진 (¥)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- JS로 채워짐 -->
+                </tbody>
+            </table>
+            <p style="font-size: 12px; color: #7f8c8d; margin-top: 10px;">* 메가포: 일반 마진 대비 대략 일반가 * 1.05 / 메가와리: 일반 마진 대비 대략 일반가 * 1.104 수준입니다.</p>
+        </div>
+    </div>
+
+    <script>
+        function calculate() {
+            // 입력값 가져오기
+            const exRate = parseFloat(document.getElementById('exchangeRate').value) / 100; // 9.3 처럼 계산
+            const vatRatio = parseFloat(document.getElementById('vatRatio').value); // 사용자 입력값 (현재는 곱하기용으로 사용하지 않고 고정값 1.1 곱셈으로 수정)
+
+            let rawCost = parseFloat(document.getElementById('productCost').value) || 0;
+            const pack = parseFloat(document.getElementById('packageCost').value) || 0;
+            const ship = parseFloat(document.getElementById('shippingCost').value) || 0;
+            const price = parseFloat(document.getElementById('sellingPrice').value) || 0;
+
+            // --- 제품원가 계산 분기 (엔화/원화 선택) ---
+            const costUnit = document.querySelector('input[name="costUnit"]:checked').value;
+            const excludeVat = document.getElementById('excludeVat').checked;
+
+            let finalCostJpy = 0;
+            if (costUnit === 'Yen') {
+                finalCostJpy = rawCost;
+                document.getElementById('appliedYenCost').innerText = ``;
+            } else {
+                // 원화 입력 시 환급(10%) 고려할지 분기
+                if (excludeVat) {
+                    rawCost = rawCost / 1.1; // 공급가액 기준
+                }
+                finalCostJpy = exRate > 0 ? (rawCost / exRate) : 0;
+                document.getElementById('appliedYenCost').innerText = `💡 변환된 엔화 원가: 약 ${finalCostJpy.toFixed(0)} ¥`;
+            }
+
+            const totalCost = finalCostJpy + pack + ship;
+
+            // --- 일반 계산 ---
+            const normalFee = price * 0.13;
+            const normalMarginYen = price - normalFee - totalCost;
+            const normalMarginWon = normalMarginYen * exRate; // 환율 표기에 맞춤
+            const normalMarginVatWon = normalMarginWon * vatRatio;
+
+            // --- 메가포 (10%) 계산 ---
+            // =B15 - C15 - F15 - G15 - H15 - I15 - K15 + J15
+            const megapoCoupon = price * 0.10;
+            const megapoPayment = price - megapoCoupon;
+            const megapoFee = megapoPayment * 0.13;
+            const megapoPoint = megapoPayment * 0.10;
+            const megapoDiscountFee = megapoCoupon * 0.05; // 5% of coupon
+
+            // 큐텐 지원금 = 쿠폰의 50% + 포인트 금액
+            const megapoSupport = (megapoCoupon * 0.5) + megapoPoint;
+
+            // 마진 = 판매가 - 수수료 - 메가포포인트 - 할인지원수수료 - 원가/포장/배송 + 지원금
+            const megapoMarginYen = price - megapoFee - megapoPoint - megapoDiscountFee - totalCost + megapoSupport;
+            const megapoMarginWon = megapoMarginYen * exRate;
+            const megapoMarginVatWon = megapoMarginWon * vatRatio;
+
+            // --- 메가와리 (20%) 계산 ---
+            const megawariCoupon = price * 0.20;
+            const megawariPayment = price - megawariCoupon;
+            const megawariFee = megawariPayment * 0.13;
+            const megawariDiscountFee = megawariPayment * 0.01; // 1% of payment
+            const megawariSupport = megawariCoupon * 0.5; // 쿠폰의 50%
+
+            // 판매가 - 쿠폰 - 수수료 - 할인지원수수료 - 원가/포장/배송 + 지원금
+            const megawariMarginYen = price - megawariCoupon - megawariFee - megawariDiscountFee - totalCost + megawariSupport;
+            const megawariMarginWon = megawariMarginYen * exRate;
+            const megawariMarginVatWon = megawariMarginWon * vatRatio;
+
+            // 결과 테이블 그리기
+            const tbody = document.querySelector('#resultsTable tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td><strong>일반</strong></td>
+                    <td>${price.toFixed(0)}</td>
+                    <td>0</td>
+                    <td>${price.toFixed(0)}</td>
+                    <td>${normalFee.toFixed(0)}</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td>${finalCostJpy.toFixed(0)}</td>
+                    <td class="highlight">${normalMarginYen.toFixed(0)}</td>
+                    <td>₩ ${normalMarginWon.toFixed(0)}</td>
+                    <td>₩ ${normalMarginVatWon.toFixed(0)}</td>
+                </tr>
+                <tr>
+                    <td><strong>메가포 (10%)</strong></td>
+                    <td>${price.toFixed(0)}</td>
+                    <td>${megapoCoupon.toFixed(0)}</td>
+                    <td>${megapoPayment.toFixed(0)}</td>
+                    <td>${megapoFee.toFixed(0)}</td>
+                    <td>${megapoPoint.toFixed(0)} / ${megapoDiscountFee.toFixed(0)}</td>
+                    <td>${megapoSupport.toFixed(0)}</td>
+                    <td>${finalCostJpy.toFixed(0)}</td>
+                    <td class="highlight">${megapoMarginYen.toFixed(0)}</td>
+                    <td>₩ ${megapoMarginWon.toFixed(0)}</td>
+                    <td>₩ ${megapoMarginVatWon.toFixed(0)}</td>
+                </tr>
+                <tr>
+                    <td><strong>메가와리 (20%)</strong></td>
+                    <td>${price.toFixed(0)}</td>
+                    <td>${megawariCoupon.toFixed(0)}</td>
+                    <td>${megawariPayment.toFixed(0)}</td>
+                    <td>${megawariFee.toFixed(0)}</td>
+                    <td>${megawariDiscountFee.toFixed(0)}</td>
+                    <td>${megawariSupport.toFixed(0)}</td>
+                    <td>${finalCostJpy.toFixed(0)}</td>
+                    <td class="highlight">${megawariMarginYen.toFixed(0)}</td>
+                    <td>₩ ${megawariMarginWon.toFixed(0)}</td>
+                    <td>₩ ${megawariMarginVatWon.toFixed(0)}</td>
+                </tr>
+            `;
+
+            // --- 역산 (Goal Seek) ---
+            // 간단하게 반복문으로 목표 마진에 도달하는 판매가를 찾습니다.
+            let targetMegapoPrice = price;
+            for(let p = price; p <= price * 1.5; p += 1) {
+                let mCoupon = p * 0.10;
+                let mPay = p - mCoupon;
+                let mFee = mPay * 0.13;
+                let mPoint = mPay * 0.10;
+                let mDiscFee = mCoupon * 0.05;
+                let mSup = (mCoupon * 0.5) + mPoint;
+                let mMargin = p - mFee - mPoint - mDiscFee - totalCost + mSup;
+
+                if(mMargin >= normalMarginYen) {
+                    targetMegapoPrice = p;
+                    break;
+                }
+            }
+
+            let targetMegawariPrice = price;
+            for(let p = price; p <= price * 1.5; p += 1) {
+                let wCoupon = p * 0.20;
+                let wPay = p - wCoupon;
+                let wFee = wPay * 0.13;
+                let wDiscFee = wPay * 0.01;
+                let wSup = wCoupon * 0.5;
+                let wMargin = p - wCoupon - wFee - wDiscFee - totalCost + wSup;
+
+                if(wMargin >= normalMarginYen) {
+                    targetMegawariPrice = p;
+                    break;
+                }
+            }
+
+            // 역산 테이블 그리기
+            const targetTbody = document.querySelector('#targetTable tbody');
+            targetTbody.innerHTML = `
+                <tr>
+                    <td><strong>메가포 (10%)</strong></td>
+                    <td class="highlight">${targetMegapoPrice.toFixed(0)}</td>
+                    <td>${normalMarginYen.toFixed(0)}</td>
+                </tr>
+                <tr>
+                    <td><strong>메가와리 (20%)</strong></td>
+                    <td class="highlight">${targetMegawariPrice.toFixed(0)}</td>
+                    <td>${normalMarginYen.toFixed(0)}</td>
+                </tr>
+            `;
+        }
+
+        // 원가 입력 방식 변경 처리 로직
+        function handleCostUnitChange() {
+            const costUnit = document.querySelector('input[name="costUnit"]:checked').value;
+            const costInput = document.getElementById('productCost');
+            const costLabel = document.getElementById('productCostLabel');
+            const vatContainer = document.getElementById('vatOptionContainer');
+
+            if(costUnit === 'Yen') {
+                costLabel.innerText = "제품원가 (¥)";
+                costInput.step = "10";
+                vatContainer.style.display = "none";
+                document.getElementById('appliedYenCost').innerText = "";
+            } else {
+                costLabel.innerText = "제품원가 (₩)";
+                costInput.step = "100";
+                vatContainer.style.display = "inline";
+            }
+            calculate();
+        }
+
+        // 이벤트 리스너 등록
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', calculate);
+        });
+
+        document.querySelectorAll('input[name="costUnit"]').forEach(input => {
+            input.addEventListener('change', handleCostUnitChange);
+        });
+
+        document.getElementById('excludeVat').addEventListener('change', calculate);
+
+        // 초기 셋업 및 계산
+        handleCostUnitChange();
+    </script>
+</body>
+</html>
